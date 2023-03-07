@@ -1,7 +1,7 @@
 # AIRBNB CLONE PROJECT 
 # Description
-This is a team project to build an [AiRBnB clone](https://www.airbnb.com/)
-
+This is a team project to build an [AiRBnB clone console.](https://www.airbnb.com/)
+The console handles object storage using JSON serialization and deserealization. This is a team project to develop a Python3 console that emulates the AirBnb object management. It includes directory with static web pages for desktop and mobile first version with ARIA implementation.
 ## The first step
 The first step towards building your first full web application: the AirBnB clone. This first step is very important because you will use what you build during this project with all other following projects: HTML/CSS templating, database storage, API, front-end integration
 Each task is linked and will help to:
