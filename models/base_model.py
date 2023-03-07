@@ -18,14 +18,15 @@ class BaseModel:
     def __init__(self, *args, **kwargs):
         """Intializes the public instance attribute
         Args:
-            *args: argument
+            *args: unused argument
             **kwargs: Key/value pairs of attributes
         """
         dtformat = '%Y-%m-%dT%H:%M:%S.%f'
         if not kwargs:
             self.id = str(uuid4())
-            self.created_at = datetime.today()
-            self.updated_at = datetime.today()
+            self.created_at = datetime.now()
+            self.updated_at = datetime.now()
+            models.storage.new(self)
         else:
             for key, value in kwargs.items():
                 if key == "created_at" or key == "updated_at":
@@ -41,7 +42,8 @@ class BaseModel:
 
     def save(self):
         """updates updated_at with the current datetime"""
-        self.updated_at = datetime.today()
+        self.updated_at = datetime.now()
+        models.storage.save()
 
     def to_dict(self):
         """returns a dictionary containing all keys/values of the instance dict
