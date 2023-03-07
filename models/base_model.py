@@ -26,7 +26,6 @@ class BaseModel:
             self.id = str(uuid4())
             self.created_at = datetime.today()
             self.updated_at = datetime.today()
-            models.storage.new(self)
         else:
             for key, value in kwargs.items():
                 if key == "created_at" or key == "updated_at":
@@ -43,16 +42,12 @@ class BaseModel:
     def save(self):
         """updates updated_at with the current datetime"""
         self.updated_at = datetime.today()
-        models.storage.save()
 
     def to_dict(self):
         """returns a dictionary containing all keys/values of the instance dict
         """
-        map_dict = self.__dict__.items()
-        for key, value in map_dict:
-            if key == "created_at" or key == "updated_at":
-                map_dict[key] = value.isoformat()
-            else:
-                map_dict[key] = value
+        map_dict = self.__dict__.copy()
+        map_dict["created_at"] = self.created_at.isoformat()
+        map_dict["updated_at"] = self.updated_at.isoformat()
         map_dict["__class__"] = self.__class__.__name__
         return map_dict
