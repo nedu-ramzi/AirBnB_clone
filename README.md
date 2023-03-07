@@ -52,19 +52,20 @@ $
 
 ## Testing
 All the tests are defined in the test folder
+
 All your tests should be executed by using this command:
-Modules
+### Modules
 ```
 python3 -c 'print(__import__("my_module").__doc__)'
 ```
 
-Functions (inside and oytside the classes)
+### Functions (inside and oytside the classes)
 ```
 python3 -c 'print(__import__("my_module").my_function.__doc__)'
 python3 -c 'print(__import__("my_module").MyClass.my_function.__doc__)'
 ```
 
-Classes
+### Classes
 ```
 python3 -c 'print(__import__("my_module").MyClass.__doc__)'
 ```
