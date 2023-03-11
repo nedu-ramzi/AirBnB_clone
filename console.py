@@ -21,7 +21,7 @@ class HBNBCommand(cmd.Cmd):
     def do_create(self, arg):
         """Create a new instance of BaseModel, saves it (to the JSON file)
             and print id"""
-        if arg == "" or arg == None:
+        if arg == "" or arg is None:
             print("** class name missing **")
         elif arg not in storage.classes():
             print("** class doesn't exist **")
@@ -30,12 +30,11 @@ class HBNBCommand(cmd.Cmd):
             b.save()
             print(b.id)
 
-
     def do_show(self, arg):
         """Prints the string representation of an instance based on the
             class name id"""
 
-        if arg == "" or arg == None:
+        if arg == "" or arg is None:
             print("** class name missing **")
         else:
             word = arg.split(' ')
@@ -52,7 +51,7 @@ class HBNBCommand(cmd.Cmd):
 
     def do_destroy(self, arg):
         """Deletes an instance based on the class name and id"""
-        if arg == "" or arg == None:
+        if arg == "" or arg is None:
             print("** class name missing **")
         else:
             word = arg.split(' ')
@@ -72,7 +71,7 @@ class HBNBCommand(cmd.Cmd):
         """Prints all string representation of all instances."""
         if arg != "":
             word = arg.split(' ')
-            if word[0] not in HBNBCommand.__classes:
+            if word[0] not in storage.classes():
                 print("** class doesn't exist **")
             else:
                 nl = [str(obj) for key, obj in storage.all().items()
@@ -144,7 +143,6 @@ class HBNBCommand(cmd.Cmd):
     def help_help(self):
         """Help command"""
         print("Print a list of available commands or help for a specific command")
-
 
 
 if __name__ == '__main__':
