@@ -4,6 +4,7 @@
 
 import cmd
 import models
+import json
 from models.base_model import BaseModel
 from models.user import User
 from models.state import State
@@ -11,18 +12,20 @@ from models.city import City
 from models.amenity import Amenity
 from models.place import Place
 from models.review import Review
+from models import storage
 
 
 class HBNBCommand(cmd.Cmd):
-    """aclass that contains the entry point of the command interpreter.
+    """a class that contains the entry point of the command interpreter.
     """
     prompt = '(hbnb) '
-    class_list = ['BaseModel', 'User', 'State', 'City', 'Amenity', 'Place',
-                  'Review']
+    class_list = {'BaseModel', 'User', 'State', 'City', 'Amenity', 'Place',
+                  'Review'}
 
     def do_EOF(self, args):
         """EOF command to exit the program.
         """
+        print()
         return True
 
     def do_quit(self, args):
@@ -64,12 +67,20 @@ class HBNBCommand(cmd.Cmd):
            args (str): inputted line in command prompt.
         """
         line = args.split()
-        if not self.verify_class(line):
-            return
-        if not self.verify_id(line):
-            return
+        if len(line) == 0:
+            print('** class name missing **')
+            return False
+        elif line[0] not in HBNBCommand.class_list:
+            print('** class doesn\'t exist **')
+            return False
+        elif len(line) < 2:
+            print('** instance id missing **')
+            return False
         key = '{}.{}'.format(line[0], line[1])
-        objects = models.storage.all()
+        objects = storage.all()
+        if key not in objects.keys():
+            print('** no instance found **')
+            return False
         print(objects[key])
 
     def do_destroy(self, args):
@@ -85,9 +96,9 @@ class HBNBCommand(cmd.Cmd):
         if not self.verify_id(line):
             return
         key = '{}.{}'.format(line[0], line[1])
-        objects = models.storage.all()
+        objects = storage.all()
         del objects[key]
-        models.storage.save()
+        storage.save()
 
     def do_all(self, args):
         """
@@ -95,7 +106,7 @@ class HBNBCommand(cmd.Cmd):
         or not on the class name.
         """
         line = args.split()
-        objects = models.storage.all()
+        objects = storage.all()
         to_print = []
         if len(line) == 0:
             for v in objects.values():
@@ -120,10 +131,10 @@ class HBNBCommand(cmd.Cmd):
             return
         if not self.verify_attribute(line):
             return
-        objects = models.storage.all()
+        objects = storage.all()
         key = '{}.{}'.format(line[0], line[1])
         setattr(objects[key], line[2], line[3])
-        models.storage.save()
+        storage.save()
 
     def default(self, args):
         """Default method that is called when the inputted command starts
@@ -136,7 +147,7 @@ class HBNBCommand(cmd.Cmd):
         if len(line) < 2:
             print('** missing attribute **')
             return
-        objects = models.storage.all()
+        objects = storage.all()
         class_name = line[0].capitalize()
         cmd_name = line[1].lower()
         split2 = cmd_name.strip(')').split('(')
@@ -189,12 +200,12 @@ class HBNBCommand(cmd.Cmd):
 
     @staticmethod
     def verify_id(line):
-        """Static method to ferify the id.
+        """Static method to verify the id.
         """
-        if len(line) < 2:
+        if len(line) == 1:
             print('** instance id missing **')
             return False
-        objects = models.storage.all()
+        objects = storage.all()
         key = '{}.{}'.format(line[0], line[1])
         if key not in objects.keys():
             print('** no instance found **')

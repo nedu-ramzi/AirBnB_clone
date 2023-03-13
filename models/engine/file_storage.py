@@ -24,19 +24,20 @@ class FileStorage:
 
     def all(self):
         """returns the dictionary __objects"""
-        return self.__objects
+        return FileStorage.__objects
 
     def new(self, obj):
         """sets in __objects the obj with key <obj class name>.id
         obj - object to write
         """
-        self.__objects["{}.{}".format(obj.__class__.__name__, obj.id)] = obj
+        objname = obj.__class__.__name__
+        FileStorage.__objects["{}.{}".format(objname, obj.id)] = obj
 
     def save(self):
         """serializes __objects to the JSON file"""
-        with open(self.__file_path, 'w') as f:
+        with open(FileStorage.__file_path, 'w') as f:
             json.dump({key: value.to_dict()
-                for key, value in self.__objects.items()}, f)
+                      for key, value in FileStorage.__objects.items()}, f)
 
     def reload(self):
         """deserializes the JSON file to __objects
@@ -45,7 +46,7 @@ class FileStorage:
             no exception should be raised)
         """
         try:
-            with open(self.__file_path, 'r') as f:
+            with open(FileStorage.__file_path, 'r') as f:
                 dictobj = json.load(f)
                 for value in dictobj.values():
                     cls = value["__class__"]
