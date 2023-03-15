@@ -160,7 +160,22 @@ class HBNBCommand(cmd.Cmd):
             return
         objects = storage.all()
         key = '{}.{}'.format(line[0], line[1])
-        setattr(objects[key], line[2], line[3])
+        if len(line) == 4:
+            obj = objects[key]
+            if line[2] in obj.__class__.__dict__.keys():
+                valtype = type(obj.__class__.__dict__[line[2]])
+                obj.__dict__[line[2]] = valtype(line[3])
+            else:
+                obj.__dict__[line[2]] = line[3]
+        elif type(eval(line[2])) == dict:
+            obj = objects[key]
+            for k, v in eval(line[2]).items():
+                if (k in obj.__class__.__dict__.keys() and
+                        type(obj.__class__.__dict__[k]) in {str, int, float}):
+                    valtype = type(obj.__class__.__dict__[k])
+                    obj.__dict__[k] = valtype(v)
+                else:
+                    obj.__dict__[k] = v
         storage.save()
 
     def default(self, args):
