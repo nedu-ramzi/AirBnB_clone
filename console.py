@@ -167,6 +167,7 @@ class HBNBCommand(cmd.Cmd):
                 obj.__dict__[line[2]] = valtype(line[3])
             else:
                 obj.__dict__[line[2]] = line[3]
+
         elif type(eval(line[2])) == dict:
             obj = objects[key]
             for k, v in eval(line[2]).items():
