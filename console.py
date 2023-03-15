@@ -1,10 +1,8 @@
 #!/usr/bin/python3
 """Module for the entry point of the command interpreter."""
 
-
 import cmd
-import models
-import json
+from shlex import split
 from models.base_model import BaseModel
 from models.user import User
 from models.state import State
@@ -13,6 +11,25 @@ from models.amenity import Amenity
 from models.place import Place
 from models.review import Review
 from models import storage
+import re
+
+
+def parse(arg):
+    curly_braces = re.search(r"\{(.*?)\}", arg)
+    brackets = re.search(r"\[(.*?)\]", arg)
+    if curly_braces is None:
+        if brackets is None:
+            return [i.strip(",") for i in split(arg)]
+        else:
+            lexer = split(arg[:brackets.span()[0]])
+            retl = [i.strip(",") for i in lexer]
+            retl.append(brackets.group())
+            return retl
+    else:
+        lexer = split(arg[:curly_braces.span()[0]])
+        retl = [i.strip(",") for i in lexer]
+        retl.append(curly_braces.group())
+        return retl
 
 
 class HBNBCommand(cmd.Cmd):
@@ -50,7 +67,7 @@ class HBNBCommand(cmd.Cmd):
         Attributes:
             args (str): inputted line in command prompt.
         """
-        line = args.split()
+        line = parse(args)
         if not self.verify_class(line):
             return
         instance = eval(line[0] + '()')
@@ -66,7 +83,7 @@ class HBNBCommand(cmd.Cmd):
         Attributes:
            args (str): inputted line in command prompt.
         """
-        line = args.split()
+        line = parse(args)
         if len(line) == 0:
             print('** class name missing **')
             return False
@@ -83,6 +100,16 @@ class HBNBCommand(cmd.Cmd):
             return False
         print(objects[key])
 
+    def do_count(self, args):
+        """Usage: count <class> or <class>.count()
+        Retrieve the number of instances of a given class."""
+        line = parse(args)
+        count = 0
+        for obj in storage.all().values():
+            if line[0] == obj.__class__.__name__:
+                count += 1
+        print(count)
+
     def do_destroy(self, args):
         """Destroy command that deletes an instance based on the class name
         and id. Save the change in JSON file.
@@ -90,7 +117,7 @@ class HBNBCommand(cmd.Cmd):
         Attributes:
             args (str): inputted line in command prompt.
         """
-        line = args.split()
+        line = parse(args)
         if not self.verify_class(line):
             return
         if not self.verify_id(line):
@@ -105,7 +132,7 @@ class HBNBCommand(cmd.Cmd):
         Prints all string representation of all instances based
         or not on the class name.
         """
-        line = args.split()
+        line = parse(args)
         objects = storage.all()
         to_print = []
         if len(line) == 0:
@@ -124,7 +151,7 @@ class HBNBCommand(cmd.Cmd):
         """Updates an instance based on the class name and id
         by adding or updating attribute (save the change into the JSON file).
         """
-        line = args.split()
+        line = parse(args)
         if not self.verify_class(line):
             return
         if not self.verify_id(line):
@@ -138,54 +165,29 @@ class HBNBCommand(cmd.Cmd):
 
     def default(self, args):
         """Default method that is called when the inputted command starts
-        with a class name.
+        with a class name or when the input is invalid
 
         Attributes:
             args (str): The inputted line string
         """
-        line = args.strip('()').split(".")
-        if len(line) < 2:
-            print('** missing attribute **')
-            return
-        objects = storage.all()
-        class_name = line[0].capitalize()
-        cmd_name = line[1].lower()
-        split2 = cmd_name.strip(')').split('(')
-        cmd_name = split2[0]
-        if cmd_name == 'all':
-            HBNBCommand.do_all(self, class_name)
-        elif cmd_name == 'count':
-            count = 0
-            for k in objects.keys():
-                key = k.split('.')
-                if class_name == key[0]:
-                    count += 1
-            print(count)
-        elif cmd_name == 'show':
-            if len(split2) < 2:
-                print('** no instance found **')
-            else:
-                HBNBCommand.do_show(self, class_name + ' ' + split2[1])
-        elif cmd_name == 'destroy':
-            if len(split2) < 2:
-                print('** no instance found **')
-            else:
-                HBNBCommand.do_destroy(self, class_name + ' ' + split2[1])
-        elif cmd_name == 'update':
-            split3 = split2[1].split(', ')
-            if len(split3) == 0:
-                print('** no instance found **')
-            elif len(split3) == 1 and type(split3[1]) == dict:
-                for k, v in split[1].items():
-                    HBNBCommand.do_update(self, class_name + ' ' + split3[0] +
-                                          ' ' + k + ' ' + v)
-            elif len(split3) == 1 and type(split3[1]) != dict:
-                print('** no instance found **')
-            elif len(split3) == 2:
-                print('** no instance found **')
-            else:
-                HBNBCommand.do_update(self, class_name + ' ' + split3[0] +
-                                      ' ' + split3[1] + ' ' + split3[2])
+        methoddict = {
+            "all": self.do_all,
+            "show": self.do_show,
+            "destroy": self.do_destroy,
+            "count": self.do_count,
+            "update": self.do_update
+        }
+        match = re.search(r"\.", args)
+        if match is not None:
+            line = [args[:match.span()[0]], args[match.span()[1]:]]
+            match = re.search(r"\((.*?)\)", line[1])
+            if match is not None:
+                command = [line[1][:match.span()[0]], match.group()[1:-1]]
+                if command[0] in methoddict.keys():
+                    call = "{} {}".format(line[0], command[1])
+                    return methoddict[command[0]](call)
+        print("*** Unknown syntax: {}".format(args))
+        return False
 
     @classmethod
     def verify_class(cls, line):
